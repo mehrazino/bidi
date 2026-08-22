@@ -146,6 +146,20 @@ function updateOutput() {
 }
 
 /**
+ * Show success state on copy button
+ */
+function showCopySuccess() {
+    copyBtn.textContent = 'کپی شد';
+    copyBtn.classList.add('btn-success');
+    
+    // Revert after 1.5 seconds
+    setTimeout(() => {
+        copyBtn.textContent = 'کپی خروجی';
+        copyBtn.classList.remove('btn-success');
+    }, 1500);
+}
+
+/**
  * Copy normalized output to clipboard
  */
 function copyOutput() {
@@ -153,15 +167,7 @@ function copyOutput() {
     if (!normalizedText || outputBox.querySelector('.placeholder')) return;
     
     navigator.clipboard.writeText(normalizedText).then(() => {
-        // Show success state
-        copyBtn.textContent = 'کپی شد';
-        copyBtn.classList.add('btn-success');
-        
-        // Revert after 1.5 seconds
-        setTimeout(() => {
-            copyBtn.textContent = 'کپی خروجی';
-            copyBtn.classList.remove('btn-success');
-        }, 1500);
+        showCopySuccess();
     }).catch(err => {
         alert('خطا در کپی: ' + err);
     });
@@ -178,6 +184,9 @@ function clearOutput() {
 inputEl.addEventListener('input', updateOutput);
 copyBtn.addEventListener('click', copyOutput);
 clearBtn.addEventListener('click', clearOutput);
+
+// Copy when clicking on output box
+outputBox.addEventListener('click', copyOutput);
 
 // ========== Initialize ==========
 updateOutput();
