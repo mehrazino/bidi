@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mixed Text Direction Converter</title>
+    
+    <!-- Vazirmatn Font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1>مبدل متن ترکیبی راست‌چین و چپ‌چین</h1>
+            <p class="header-desc">تبدیل متن ترکیبی فارسی و انگلیسی با کاراکترهای نامرئی یونیکد مانند U+202B و U+202A و U+202C</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="section">
+                <label for="inputText" class="section-title">متن ورودی</label>
+                <textarea 
+                    id="inputText" 
+                    placeholder="متن ترکیبی خود را اینجا بنویسید..." 
+                    spellcheck="false"
+                ></textarea>
+            </section>
+
+            <!-- Output Section -->
+            <section class="section">
+                <label class="section-title">خروجی اصلاح‌شده</label>
+                <div id="outputBox" class="output-box">
+                    <span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <button id="copyBtn" class="btn btn-primary">کپی خروجی</button>
+                <button id="clearBtn" class="btn btn-secondary">پاک</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- External JavaScript -->
+    <script src="script.js"></script>
+</body>
+</html>
