@@ -19,6 +19,274 @@
 }
 
 /* ========== Base Styles ========== */
+html, body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: var(--bg);
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+    padding: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: 1.5;
+    color: var(--text);
+}
+
+/* ========== Container ========== */
+.container {
+    width: 100%;
+    max-width: 700px;
+    height: 100%;
+    max-height: 100%;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ========== Header ========== */
+.header {
+    text-align: center;
+    margin-bottom: 1rem;
+    flex-shrink: 0;
+}
+
+.header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+}
+
+.header-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.header-desc a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.header-desc a:hover {
+    color: var(--primary-hover);
+}
+
+/* ========== Main Content ========== */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+    min-height: 0;
+}
+
+/* ========== Sections ========== */
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 1;
+    min-height: 0;
+}
+
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text);
+    cursor: default;
+    flex-shrink: 0;
+}
+
+/* ========== Textarea (Input) ========== */
+textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fefefe;
+    color: var(--text);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s ease;
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+}
+
+textarea:focus {
+    border-color: var(--primary);
+}
+
+textarea::placeholder {
+    color: #999999;
+}
+
+/* ========== Output Box ========== */
+.output-box {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: #fefefe;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-y: auto;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.output-box:hover {
+    border-color: var(--primary);
+    background: #f8faff;
+}
+
+.output-box:active {
+    transform: scale(0.99);
+}
+
+.output-box .placeholder {
+    color: #999999;
+    font-style: italic;
+}
+
+/* ========== Action Buttons ========== */
+.actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-shrink: 0;
+}
+
+.btn {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+    background: #ffffff;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn-primary.btn-success {
+    background: var(--success);
+    border-color: var(--success);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: #f5f5f5;
+}
+
+/* ========== Footer ========== */
+.footer {
+    text-align: center;
+    flex-shrink: 0;
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.footer a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: var(--primary-hover);
+}
+
+/* ========== Mobile Responsive ========== */
+@media (max-width: 640px) {
+    html, body {
+        overflow: auto;
+        height: auto;
+        min-height: 100%;
+    }
+    
+    body {
+        padding: 0.75rem;
+        align-items: flex-start;
+    }
+    
+    .container {
+        height: auto;
+        min-height: 100%;
+        padding: 1rem;
+    }
+    
+    .main-content {
+        flex: none;
+    }
+    
+    textarea,
+    .output-box {
+        flex: none;
+        min-height: 150px;
+    }
+    
+    .actions {
+        flex-direction: column;
+    }
+}/* ========== CSS Reset ========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ========== CSS Variables ========== */
+:root {
+    --bg: #fafafa;
+    --card-bg: #ffffff;
+    --text: #1a1a1a;
+    --text-secondary: #666666;
+    --border: #e0e0e0;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success: #22c55e;
+    --radius: 12px;
+}
+
+/* ========== Base Styles ========== */
 body {
     background: var(--bg);
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
