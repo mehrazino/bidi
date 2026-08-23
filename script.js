@@ -174,16 +174,18 @@ function copyOutput() {
 }
 
 /**
- * Clear output box
+ * Clear both input and output
  */
-function clearOutput() {
+function clearAll() {
+    inputEl.value = '';
     outputBox.innerHTML = '<span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>';
+    inputEl.focus();
 }
 
 // ========== Event Listeners ==========
 inputEl.addEventListener('input', updateOutput);
 copyBtn.addEventListener('click', copyOutput);
-clearBtn.addEventListener('click', clearOutput);
+clearBtn.addEventListener('click', clearAll);
 
 // Copy when clicking on output box
 outputBox.addEventListener('click', copyOutput);
