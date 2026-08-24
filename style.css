@@ -5,19 +5,6 @@
     box-sizing: border-box;
 }
 
-/* ========== CSS Variables ========== */
-:root {
-    --bg: #fafafa;
-    --card-bg: #ffffff;
-    --text: #1a1a1a;
-    --text-secondary: #666666;
-    --border: #e0e0e0;
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --success: #22c55e;
-    --radius: 12px;
-}
-
 /* ========== Base Styles ========== */
 html, body {
     height: 100%;
@@ -25,29 +12,116 @@ html, body {
 }
 
 body {
-    background: var(--bg);
+    background: #fafafa;
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
     padding: 1rem;
     display: flex;
     justify-content: center;
     align-items: center;
-    line-height: 1.5;
-    color: var(--text);
+    line-height: 1.6;
+    color: #1a1a1a;
+    transition: background 0.3s, color 0.3s;
+    perspective: 1200px;
 }
 
-/* ========== Container ========== */
-.container {
+body.dark {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+/* ========== Page Wrapper (3D Flip) ========== */
+.page-wrapper {
+    position: relative;
     width: 100%;
     max-width: 700px;
     height: 100%;
-    max-height: 100%;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    transform-style: preserve-3d;
+}
+
+.page-wrapper .container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
     padding: 1.25rem 1.5rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    transition: background 0.3s, border-color 0.3s, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+body.dark .container {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.container.front {
+    transform: rotateY(0);
+}
+
+.container.back {
+    transform: rotateY(180deg);
+}
+
+.page-wrapper.flipped .container.front {
+    transform: rotateY(-180deg);
+}
+
+.page-wrapper.flipped .container.back {
+    transform: rotateY(0);
+}
+
+/* ========== Theme Toggle Button ========== */
+.theme-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 38px;
+    height: 38px;
+    border: 1px solid #e0e0e0;
+    border-radius: 50%;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+    z-index: 10;
+    padding: 0;
+}
+
+body.dark .theme-btn {
+    background: #334155;
+    border-color: #475569;
+}
+
+.theme-btn:hover {
+    background: #f5f5f5;
+}
+
+body.dark .theme-btn:hover {
+    background: #475569;
+}
+
+.theme-btn svg {
+    width: 20px;
+    height: 20px;
+    stroke: #1a1a1a;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.3s;
+}
+
+body.dark .theme-btn svg {
+    stroke: #e2e8f0;
 }
 
 /* ========== Header ========== */
@@ -58,26 +132,28 @@ body {
 }
 
 .header h1 {
-    font-size: 1.25rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    color: var(--text);
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.3rem;
 }
 
 .header-desc {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
+    font-size: 0.9rem;
+    color: #666666;
+    line-height: 1.7;
+}
+
+body.dark .header-desc {
+    color: #94a3b8;
 }
 
 .header-desc a {
-    color: var(--primary);
+    color: #2563eb;
     text-decoration: none;
-    transition: color 0.2s ease;
 }
 
-.header-desc a:hover {
-    color: var(--primary-hover);
+body.dark .header-desc a {
+    color: #60a5fa;
 }
 
 /* ========== Main Content ========== */
@@ -89,7 +165,6 @@ body {
     min-height: 0;
 }
 
-/* ========== Sections ========== */
 .section {
     display: flex;
     flex-direction: column;
@@ -99,33 +174,40 @@ body {
 }
 
 .section-title {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    color: var(--text);
-    cursor: default;
     flex-shrink: 0;
 }
 
-/* ========== Textarea (Input) ========== */
+/* ========== Textarea ========== */
 textarea {
     width: 100%;
     flex: 1;
     min-height: 0;
     padding: 0.75rem;
     font-size: 0.9rem;
-    line-height: 1.7;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    line-height: 1.8;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
     background: #fefefe;
-    color: var(--text);
+    color: #1a1a1a;
     resize: none;
     outline: none;
-    transition: border-color 0.2s ease;
+    transition: border-color 0.2s, background 0.3s, color 0.3s;
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+    unicode-bidi: plaintext;
+    direction: rtl;
+    text-align: right;
+}
+
+body.dark textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
 }
 
 textarea:focus {
-    border-color: var(--primary);
+    border-color: #2563eb;
 }
 
 textarea::placeholder {
@@ -139,30 +221,38 @@ textarea::placeholder {
     min-height: 0;
     padding: 0.75rem;
     font-size: 0.9rem;
-    line-height: 1.7;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    line-height: 1.8;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
     background: #fefefe;
-    color: var(--text);
+    color: #1a1a1a;
     white-space: pre-wrap;
     word-break: break-word;
     overflow-y: auto;
     cursor: pointer;
-    transition: border-color 0.2s ease, background 0.2s ease;
+    transition: border-color 0.2s, background 0.2s;
+    unicode-bidi: plaintext;
+}
+
+body.dark .output-box {
+    background: #0f172a;
+    border-color: #334155;
+    color: #e2e8f0;
 }
 
 .output-box:hover {
-    border-color: var(--primary);
+    border-color: #2563eb;
     background: #f8faff;
 }
 
-.output-box:active {
-    transform: scale(0.99);
+body.dark .output-box:hover {
+    background: #1e293b;
+    border-color: #60a5fa;
 }
 
 .output-box .placeholder {
     color: #999999;
-    font-style: italic;
+    font-style: normal;
 }
 
 /* ========== Action Buttons ========== */
@@ -174,43 +264,47 @@ textarea::placeholder {
 
 .btn {
     flex: 1;
-    padding: 0.6rem 1rem;
-    font-size: 0.85rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
     background: #ffffff;
+    color: #1a1a1a;
 }
 
-.btn:active {
-    transform: scale(0.98);
+body.dark .btn {
+    background: #334155;
+    border-color: #475569;
+    color: #e2e8f0;
 }
 
 .btn-primary {
-    background: var(--primary);
-    border-color: var(--primary);
+    background: #2563eb;
+    border-color: #2563eb;
     color: #ffffff;
 }
 
-.btn-primary:hover {
-    background: var(--primary-hover);
+body.dark .btn-primary {
+    background: #3b82f6;
+    border-color: #3b82f6;
 }
 
 .btn-primary.btn-success {
-    background: var(--success);
-    border-color: var(--success);
-}
-
-.btn-secondary {
-    background: #ffffff;
-    color: var(--text);
+    background: #22c55e !important;
+    border-color: #22c55e !important;
+    color: #ffffff !important;
 }
 
 .btn-secondary:hover {
     background: #f5f5f5;
+}
+
+body.dark .btn-secondary:hover {
+    background: #475569;
 }
 
 /* ========== Footer ========== */
@@ -219,19 +313,23 @@ textarea::placeholder {
     flex-shrink: 0;
     padding-top: 0.75rem;
     margin-top: 0.75rem;
-    border-top: 1px solid var(--border);
-    font-size: 0.75rem;
-    color: var(--text-secondary);
+    border-top: 1px solid #e0e0e0;
+    font-size: 0.9rem;
+    color: #666666;
+}
+
+body.dark .footer {
+    border-color: #334155;
+    color: #94a3b8;
 }
 
 .footer a {
-    color: var(--primary);
+    color: #2563eb;
     text-decoration: none;
-    transition: color 0.2s ease;
 }
 
-.footer a:hover {
-    color: var(--primary-hover);
+body.dark .footer a {
+    color: #60a5fa;
 }
 
 /* ========== Mobile Responsive ========== */
@@ -241,29 +339,55 @@ textarea::placeholder {
         height: auto;
         min-height: 100%;
     }
-    
+
     body {
         padding: 0.75rem;
         align-items: flex-start;
     }
-    
-    .container {
+
+    .page-wrapper {
+        height: auto;
+        min-height: 100%;
+    }
+
+    .page-wrapper .container {
+        position: relative;
         height: auto;
         min-height: 100%;
         padding: 1rem;
     }
-    
+
+    .page-wrapper.flipped .container.front {
+        display: none;
+    }
+
+    .page-wrapper.flipped .container.back {
+        display: block;
+    }
+
+    .container.back {
+        display: none;
+        transform: none;
+    }
+
     .main-content {
         flex: none;
     }
-    
+
     textarea,
     .output-box {
         flex: none;
         min-height: 150px;
     }
-    
+
     .actions {
         flex-direction: column;
+    }
+
+    .theme-btn {
+        top: 0.75rem;
+        right: 0.75rem;
+        width: 34px;
+        height: 34px;
     }
 }
