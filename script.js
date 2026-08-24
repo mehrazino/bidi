@@ -1,91 +1,82 @@
 // ========== DOM Elements ==========
-const inputEl = document.getElementById('inputText');
+const pageWrapper = document.getElementById('pageWrapper');
+const inputText = document.getElementById('inputText');
 const outputBox = document.getElementById('outputBox');
 const copyBtn = document.getElementById('copyBtn');
-const clearBtn = document.getElementById('clearBtn');
+const themeBtn = document.getElementById('themeBtn');
+const sunIcon = document.getElementById('sunIcon');
+const moonIcon = document.getElementById('moonIcon');
+const inputText2 = document.getElementById('inputText2');
+const outputBox2 = document.getElementById('outputBox2');
+const copyBtn2 = document.getElementById('copyBtn2');
+const themeBtn2 = document.getElementById('themeBtn2');
+const sunIcon2 = document.getElementById('sunIcon2');
+const moonIcon2 = document.getElementById('moonIcon2');
+const backBtn = document.getElementById('backBtn');
+const cleanerBtn = document.getElementById('cleanerBtn');
 
 // ========== Unicode Control Characters ==========
 const RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
 const LRE = '\u202A'; // LEFT-TO-RIGHT EMBEDDING
 const PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
+const LRM = '\u200E'; // LEFT-TO-RIGHT MARK
+const RLM = '\u200F'; // RIGHT-TO-LEFT MARK
+const LRI = '\u2066'; // LEFT-TO-RIGHT ISOLATE
+const RLI = '\u2067'; // RIGHT-TO-LEFT ISOLATE
+const PDI = '\u2069'; // POP DIRECTIONAL ISOLATE
+const LRO = '\u202D'; // LEFT-TO-RIGHT OVERRIDE
+const RLO = '\u202E'; // RIGHT-TO-LEFT OVERRIDE
+
+// Set of bidirectional control characters for cleanup
+const CTRL_CHARS = new Set([RLE, LRE, PDF, LRM, RLM, LRI, RLI, PDI, LRO, RLO]);
+
+// Bracket characters
+const BRACKETS = new Set(['(', ')', '[', ']', '{', '}', '<', '>']);
 
 // ========== Helper Functions ==========
 
 /**
- * Check if character is RTL (Persian, Arabic, Hebrew)
- * @param {string} char - Single character to check
- * @returns {boolean} True if character is RTL
+ * Check if character is RTL (Persian, Arabic, Hebrew, Persian digits)
  */
 function isRTLChar(char) {
-    if (!char) return false;
     const code = char.charCodeAt(0);
     return (
-        (code >= 0x0590 && code <= 0x05FF) || // Hebrew
-        (code >= 0x0600 && code <= 0x06FF) || // Arabic
-        (code >= 0x0750 && code <= 0x077F) || // Arabic Supplement
-        (code >= 0x08A0 && code <= 0x08FF) || // Arabic Extended-A
-        (code >= 0xFB50 && code <= 0xFDFF) || // Arabic Presentation Forms-A
-        (code >= 0xFE70 && code <= 0xFEFF)    // Arabic Presentation Forms-B
+        (code >= 0x0590 && code <= 0x05FF) ||
+        (code >= 0x0600 && code <= 0x06FF) ||
+        (code >= 0x0750 && code <= 0x077F) ||
+        (code >= 0x08A0 && code <= 0x08FF) ||
+        (code >= 0xFB50 && code <= 0xFDFF) ||
+        (code >= 0x06F0 && code <= 0x06F9)
     );
 }
 
 /**
- * Check if character is a Persian digit (۰-۹)
- * @param {string} char - Single character to check
- * @returns {boolean} True if character is a Persian digit
+ * Check if string contains any RTL character
  */
-function isPersianDigit(char) {
-    if (!char) return false;
-    const code = char.charCodeAt(0);
-    return code >= 0x06F0 && code <= 0x06F9;
+function hasRTLChar(str) {
+    for (const char of str) {
+        if (isRTLChar(char)) return true;
+    }
+    return false;
 }
 
 /**
- * Check if character is LTR (Latin, numbers, common symbols)
- * @param {string} char - Single character to check
- * @returns {boolean} True if character is LTR
+ * Check if string is pure LTR (no RTL chars, at least one LTR char)
  */
-function isLTRChar(char) {
-    if (!char) return false;
-    const code = char.charCodeAt(0);
-    
-    return (
-        (code >= 0x20 && code <= 0x7E) ||    // Basic Latin
-        (code >= 0xA0 && code <= 0xFF) ||    // Latin-1 Supplement
-        (code >= 0x100 && code <= 0x17F) ||  // Latin Extended-A
-        (code >= 0x180 && code <= 0x24F) ||  // Latin Extended-B
-        (code >= 0x2000 && code <= 0x206F) || // General Punctuation
-        (code >= 0x20A0 && code <= 0x20CF) || // Currency Symbols
-        (code >= 0x2100 && code <= 0x214F) || // Letterlike Symbols
-        (code >= 0x2190 && code <= 0x21FF) || // Arrows
-        (code >= 0x2200 && code <= 0x22FF) || // Mathematical Operators
-        (code >= 0x2300 && code <= 0x23FF)    // Miscellaneous Technical
-    );
-}
-
-/**
- * Check if character is whitespace
- * @param {string} char - Single character to check
- * @returns {boolean} True if character is whitespace
- */
-function isWhitespace(char) {
-    return char === ' ' || char === '\t' || char === '\n' || char === '\r';
-}
-
-/**
- * Determine if a string is LTR (contains LTR chars and no RTL chars)
- * @param {string} str - String to check
- * @returns {boolean} True if string is LTR
- */
-function isLTRString(str) {
+function isPureLTR(str) {
     let hasLTR = false;
     let hasRTL = false;
     
-    for (let char of str) {
-        if (isLTRChar(char) && !isWhitespace(char)) {
-            hasLTR = true;
-        } else if (isRTLChar(char) || isPersianDigit(char)) {
+    for (const char of str) {
+        if (BRACKETS.has(char)) continue;
+        
+        if (isRTLChar(char)) {
             hasRTL = true;
+        } else {
+            const code = char.charCodeAt(0);
+            if (code >= 0x21 && code <= 0x7E) {
+                hasLTR = true;
+            }
         }
     }
     
@@ -93,51 +84,53 @@ function isLTRString(str) {
 }
 
 /**
+ * Process a single token
+ */
+function processToken(token) {
+    if (!token) return token;
+    if (isPureLTR(token)) return LRE + token + PDF;
+    return token;
+}
+
+/**
  * Normalize text by wrapping LTR segments with directional markers
- * @param {string} input - Raw input text
- * @returns {string} Normalized text with Unicode control characters
  */
 function normalizeText(input) {
     if (!input) return '';
     
-    // Split into lines
-    const lines = input.split('\n');
-    
-    // Process each line
-    const processedLines = lines.map(line => {
+    return input.split('\n').map(line => {
         if (!line.trim()) return '';
         
-        // Split line into words and spaces
-        const parts = line.split(/(\s+)/);
+        const direction = hasRTLChar(line) ? RLE : LRE;
         
-        // Wrap LTR words with LRE and PDF
-        const processedParts = parts.map(part => {
-            if (!part) return part;
-            if (part.trim() === '') return part;
-            
-            if (isLTRString(part)) {
-                return LRE + part + PDF;
-            }
-            
-            return part;
+        const parts = line.split(/(\s+)/);
+        const processed = parts.map(part => {
+            if (!part || part.trim() === '') return part;
+            return processToken(part);
         });
         
-        // Join parts and wrap entire line with RLE and PDF
-        let processedLine = processedParts.join('');
-        return RLE + processedLine + PDF;
-    });
-    
-    return processedLines.join('\n');
+        return direction + processed.join('') + PDF;
+    }).join('\n');
 }
 
 /**
- * Update output display
+ * Clean bidirectional control characters from text
  */
-function updateOutput() {
-    const rawInput = inputEl.value;
-    const normalized = normalizeText(rawInput);
-    
-    // Update output display
+function cleanText(input) {
+    let result = '';
+    for (const char of input) {
+        if (!CTRL_CHARS.has(char)) {
+            result += char;
+        }
+    }
+    return result;
+}
+
+/**
+ * Update converter output
+ */
+function updateConverter() {
+    const normalized = normalizeText(inputText.value);
     if (normalized) {
         outputBox.textContent = normalized;
     } else {
@@ -146,49 +139,81 @@ function updateOutput() {
 }
 
 /**
- * Show success state on copy button
+ * Update cleaner output
  */
-function showCopySuccess() {
-    copyBtn.textContent = 'کپی شد';
-    copyBtn.classList.add('btn-success');
-    
-    // Revert after 1.5 seconds
-    setTimeout(() => {
-        copyBtn.textContent = 'کپی خروجی';
-        copyBtn.classList.remove('btn-success');
-    }, 1500);
+function updateCleaner() {
+    const cleaned = cleanText(inputText2.value);
+    if (cleaned) {
+        outputBox2.textContent = cleaned;
+    } else {
+        outputBox2.innerHTML = '<span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>';
+    }
 }
 
 /**
- * Copy normalized output to clipboard
+ * Copy text to clipboard with visual feedback
  */
-function copyOutput() {
-    const normalizedText = outputBox.textContent;
-    if (!normalizedText || outputBox.querySelector('.placeholder')) return;
+function copyText(box, button) {
+    const text = box.textContent;
+    if (!text || box.querySelector('.placeholder')) return;
     
-    navigator.clipboard.writeText(normalizedText).then(() => {
-        showCopySuccess();
-    }).catch(err => {
-        alert('خطا در کپی: ' + err);
-    });
+    navigator.clipboard.writeText(text).then(() => {
+        button.textContent = 'کپی شد!';
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.textContent = 'کپی خروجی';
+            button.classList.remove('btn-success');
+        }, 1500);
+    }).catch(() => {});
 }
 
 /**
- * Clear both input and output
+ * Toggle dark/light theme
  */
-function clearAll() {
-    inputEl.value = '';
-    outputBox.innerHTML = '<span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>';
-    inputEl.focus();
+function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark');
+    
+    sunIcon.style.display = isDark ? 'none' : 'block';
+    moonIcon.style.display = isDark ? 'block' : 'none';
+    sunIcon2.style.display = isDark ? 'none' : 'block';
+    moonIcon2.style.display = isDark ? 'block' : 'none';
+    
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+
+/**
+ * Flip page (clockwise only)
+ */
+function flipPage() {
+    pageWrapper.classList.toggle('flipped');
 }
 
 // ========== Event Listeners ==========
-inputEl.addEventListener('input', updateOutput);
-copyBtn.addEventListener('click', copyOutput);
-clearBtn.addEventListener('click', clearAll);
+cleanerBtn.addEventListener('click', flipPage);
+backBtn.addEventListener('click', flipPage);
 
-// Copy when clicking on output box
-outputBox.addEventListener('click', copyOutput);
+copyBtn.addEventListener('click', () => copyText(outputBox, copyBtn));
+outputBox.addEventListener('click', () => copyText(outputBox, copyBtn));
+
+copyBtn2.addEventListener('click', () => copyText(outputBox2, copyBtn2));
+outputBox2.addEventListener('click', () => copyText(outputBox2, copyBtn2));
+
+inputText.addEventListener('input', updateConverter);
+inputText2.addEventListener('input', updateCleaner);
+
+themeBtn.addEventListener('click', toggleTheme);
+themeBtn2.addEventListener('click', toggleTheme);
+
+// ========== Load Saved Theme ==========
+if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+    sunIcon.style.display = 'none';
+    moonIcon.style.display = 'block';
+    sunIcon2.style.display = 'none';
+    moonIcon2.style.display = 'block';
+}
 
 // ========== Initialize ==========
-updateOutput();
+updateConverter();
+updateCleaner();
