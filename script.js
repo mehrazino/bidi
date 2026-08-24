@@ -16,16 +16,16 @@ const backBtn = document.getElementById('backBtn');
 const cleanerBtn = document.getElementById('cleanerBtn');
 
 // ========== Unicode Control Characters ==========
-const RLE = '\u202B';
-const LRE = '\u202A';
-const PDF = '\u202C';
-const LRM = '\u200E';
-const RLM = '\u200F';
-const LRI = '\u2066';
-const RLI = '\u2067';
-const PDI = '\u2069';
-const LRO = '\u202D';
-const RLO = '\u202E';
+const RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
+const LRE = '\u202A'; // LEFT-TO-RIGHT EMBEDDING
+const PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
+const LRM = '\u200E'; // LEFT-TO-RIGHT MARK
+const RLM = '\u200F'; // RIGHT-TO-LEFT MARK
+const LRI = '\u2066'; // LEFT-TO-RIGHT ISOLATE
+const RLI = '\u2067'; // RIGHT-TO-LEFT ISOLATE
+const PDI = '\u2069'; // POP DIRECTIONAL ISOLATE
+const LRO = '\u202D'; // LEFT-TO-RIGHT OVERRIDE
+const RLO = '\u202E'; // RIGHT-TO-LEFT OVERRIDE
 
 // ========== Sets ==========
 const BRACKETS = new Set(['(', ')', '[', ']', '{', '}', '<', '>']);
