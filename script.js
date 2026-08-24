@@ -16,28 +16,22 @@ const backBtn = document.getElementById('backBtn');
 const cleanerBtn = document.getElementById('cleanerBtn');
 
 // ========== Unicode Control Characters ==========
-const RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
-const LRE = '\u202A'; // LEFT-TO-RIGHT EMBEDDING
-const PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
-const LRM = '\u200E'; // LEFT-TO-RIGHT MARK
-const RLM = '\u200F'; // RIGHT-TO-LEFT MARK
-const LRI = '\u2066'; // LEFT-TO-RIGHT ISOLATE
-const RLI = '\u2067'; // RIGHT-TO-LEFT ISOLATE
-const PDI = '\u2069'; // POP DIRECTIONAL ISOLATE
-const LRO = '\u202D'; // LEFT-TO-RIGHT OVERRIDE
-const RLO = '\u202E'; // RIGHT-TO-LEFT OVERRIDE
+const RLE = '\u202B';
+const LRE = '\u202A';
+const PDF = '\u202C';
+const LRM = '\u200E';
+const RLM = '\u200F';
+const LRI = '\u2066';
+const RLI = '\u2067';
+const PDI = '\u2069';
+const LRO = '\u202D';
+const RLO = '\u202E';
 
-// Set of bidirectional control characters for cleanup
+// ========== Sets ==========
+const BRACKETS = new Set(['(', ')', '[', ']', '{', '}', '<', '>']);
 const CTRL_CHARS = new Set([RLE, LRE, PDF, LRM, RLM, LRI, RLI, PDI, LRO, RLO]);
 
-// Bracket characters
-const BRACKETS = new Set(['(', ')', '[', ']', '{', '}', '<', '>']);
-
 // ========== Helper Functions ==========
-
-/**
- * Check if character is RTL (Persian, Arabic, Hebrew, Persian digits)
- */
 function isRTLChar(char) {
     const code = char.charCodeAt(0);
     return (
@@ -50,9 +44,6 @@ function isRTLChar(char) {
     );
 }
 
-/**
- * Check if string contains any RTL character
- */
 function hasRTLChar(str) {
     for (const char of str) {
         if (isRTLChar(char)) return true;
@@ -60,16 +51,13 @@ function hasRTLChar(str) {
     return false;
 }
 
-/**
- * Check if string is pure LTR (no RTL chars, at least one LTR char)
- */
 function isPureLTR(str) {
     let hasLTR = false;
     let hasRTL = false;
-    
+
     for (const char of str) {
         if (BRACKETS.has(char)) continue;
-        
+
         if (isRTLChar(char)) {
             hasRTL = true;
         } else {
@@ -79,43 +67,34 @@ function isPureLTR(str) {
             }
         }
     }
-    
+
     return hasLTR && !hasRTL;
 }
 
-/**
- * Process a single token
- */
 function processToken(token) {
     if (!token) return token;
     if (isPureLTR(token)) return LRE + token + PDF;
     return token;
 }
 
-/**
- * Normalize text by wrapping LTR segments with directional markers
- */
 function normalizeText(input) {
     if (!input) return '';
-    
+
     return input.split('\n').map(line => {
         if (!line.trim()) return '';
-        
+
         const direction = hasRTLChar(line) ? RLE : LRE;
-        
         const parts = line.split(/(\s+)/);
+
         const processed = parts.map(part => {
             if (!part || part.trim() === '') return part;
             return processToken(part);
         });
-        
+
         return direction + processed.join('') + PDF;
     }).join('\n');
 }
 
-/**
- * Clean bidirectional control characters from text
- */
 function cleanText(input) {
     let result = '';
     for (const char of input) {
@@ -126,9 +105,7 @@ function cleanText(input) {
     return result;
 }
 
-/**
- * Update converter output
- */
+// ========== Update Functions ==========
 function updateConverter() {
     const normalized = normalizeText(inputText.value);
     if (normalized) {
@@ -138,9 +115,6 @@ function updateConverter() {
     }
 }
 
-/**
- * Update cleaner output
- */
 function updateCleaner() {
     const cleaned = cleanText(inputText2.value);
     if (cleaned) {
@@ -150,17 +124,15 @@ function updateCleaner() {
     }
 }
 
-/**
- * Copy text to clipboard with visual feedback
- */
+// ========== Copy Function ==========
 function copyText(box, button) {
     const text = box.textContent;
     if (!text || box.querySelector('.placeholder')) return;
-    
+
     navigator.clipboard.writeText(text).then(() => {
         button.textContent = 'کپی شد!';
         button.classList.add('btn-success');
-        
+
         setTimeout(() => {
             button.textContent = 'کپی خروجی';
             button.classList.remove('btn-success');
@@ -168,23 +140,19 @@ function copyText(box, button) {
     }).catch(() => {});
 }
 
-/**
- * Toggle dark/light theme
- */
+// ========== Theme Toggle ==========
 function toggleTheme() {
     const isDark = document.body.classList.toggle('dark');
-    
+
     sunIcon.style.display = isDark ? 'none' : 'block';
     moonIcon.style.display = isDark ? 'block' : 'none';
     sunIcon2.style.display = isDark ? 'none' : 'block';
     moonIcon2.style.display = isDark ? 'block' : 'none';
-    
+
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
-/**
- * Flip page (clockwise only)
- */
+// ========== Page Flip ==========
 function flipPage() {
     pageWrapper.classList.toggle('flipped');
 }
