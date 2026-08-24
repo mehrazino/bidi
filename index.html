@@ -4,102 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مبدل متن ترکیبی</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1920' fill='%23ffffff'%3E%3Cpath d='M822.456 787.786h33.337v447.22h168.8V168.89h196.652v1066.115h168.8V168.89h171.331V0h-738.92C605.379 0 428.73 176.659 428.73 393.85c0 217.277 176.65 393.936 393.726 393.936m949.528 650.39H523.268l193.65-193.592-119.416-119.38-397.518 397.398L597.502 1920l119.416-119.38-193.65-193.59h1248.716v-168.855Z' fill-rule='evenodd'/%3E%3C/svg%3E">
-    
-    <!-- Vazirmatn Font -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1920' fill='%23fff'%3E%3Cpath d='M822.456 787.786h33.337v447.22h168.8V168.89h196.652v1066.115h168.8V168.89h171.331V0h-738.92C605.379 0 428.73 176.659 428.73 393.85c0 217.277 176.65 393.936 393.726 393.936m949.528 650.39H523.268l193.65-193.592-119.416-119.38-397.518 397.398L597.502 1920l119.416-119.38-193.65-193.59h1248.716v-168.855Z' fill-rule='evenodd'/%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
-    
-    <!-- External CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="page-wrapper" id="pageWrapper">
-        <!-- ========== Converter Page (Front) ========== -->
+        <!-- Converter Page -->
         <div class="container front" id="converterPage">
-            <!-- Theme Toggle Button -->
             <button class="theme-btn" id="themeBtn">
-                <svg id="sunIcon" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="5"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-                <svg id="moonIcon" viewBox="0 0 24 24" style="display:none">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
+                <svg id="sunIcon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg id="moonIcon" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
-
-            <!-- Header -->
             <header class="header">
                 <h1>مبدل متن ترکیبی راست‌چین و چپ‌چین</h1>
-                <p class="header-desc">
-                    تصحیح متن ترکیبی فارسی و انگلیسی با 
-                    <a href="https://en.wikipedia.org/wiki/Unicode_control_characters#Bidirectional_text_control" target="_blank" rel="noopener noreferrer">یونی‌کدهای نامرئی کنترل کاراکتر</a>
-                    <br>
-                    برای استفاده در پلتفرم‌هایی که متن دوجهته را پشتیبانی نمی‌کنند.
-                </p>
+                <p class="header-desc">تصحیح متن ترکیبی فارسی و انگلیسی با <a href="https://en.wikipedia.org/wiki/Unicode_control_characters#Bidirectional_text_control" target="_blank" rel="noopener">یونی‌کدهای نامرئی کنترل کاراکتر</a><br>برای استفاده در پلتفرم‌هایی که متن دوجهته را پشتیبانی نمی‌کنند.</p>
             </header>
-
-            <!-- Main Content -->
             <main class="main-content">
-                <!-- Input Section -->
                 <section class="section">
-                    <label for="inputText" class="section-title">متن ورودی</label>
+                    <label class="section-title">متن ورودی</label>
                     <textarea id="inputText" placeholder="متن ترکیبی خود را اینجا بنویسید..." spellcheck="false"></textarea>
                 </section>
-
-                <!-- Output Section -->
                 <section class="section">
                     <label class="section-title">خروجی اصلاح‌شده</label>
-                    <div id="outputBox" class="output-box">
-                        <span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>
-                    </div>
+                    <div id="outputBox" class="output-box"><span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span></div>
                 </section>
-
-                <!-- Action Buttons -->
                 <div class="actions">
                     <button id="copyBtn" class="btn btn-primary">کپی خروجی</button>
                     <button id="cleanerBtn" class="btn btn-secondary">پاک‌سازی کارکتر</button>
                 </div>
             </main>
         </div>
-
-        <!-- ========== Cleaner Page (Back) ========== -->
+        <!-- Cleaner Page -->
         <div class="container back" id="cleanerPage">
-            <!-- Theme Toggle Button -->
             <button class="theme-btn" id="themeBtn2">
-                <svg id="sunIcon2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="5"/>
-                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
-                </svg>
-                <svg id="moonIcon2" viewBox="0 0 24 24" style="display:none">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-                </svg>
+                <svg id="sunIcon2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg id="moonIcon2" viewBox="0 0 24 24" style="display:none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
-
-            <!-- Header -->
             <header class="header">
                 <h1>پاک‌سازی متن از کارکترهای کنترل جهت</h1>
                 <p class="header-desc">حذف کاراکترهای نامرئی که برای کنترل جهت متن اضافه شده‌اند.</p>
             </header>
-
-            <!-- Main Content -->
             <main class="main-content">
-                <!-- Input Section -->
                 <section class="section">
-                    <label for="inputText2" class="section-title">متن ورودی</label>
+                    <label class="section-title">متن ورودی</label>
                     <textarea id="inputText2" placeholder="متن دارای کاراکترهای کنترل جهت را اینجا بنویسید..." spellcheck="false"></textarea>
                 </section>
-
-                <!-- Output Section -->
                 <section class="section">
                     <label class="section-title">خروجی پاک‌سازی‌شده</label>
-                    <div id="outputBox2" class="output-box">
-                        <span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>
-                    </div>
+                    <div id="outputBox2" class="output-box"><span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span></div>
                 </section>
-
-                <!-- Action Buttons -->
                 <div class="actions">
                     <button id="copyBtn2" class="btn btn-primary">کپی خروجی</button>
                     <button id="backBtn" class="btn btn-secondary">بازگشت</button>
@@ -107,8 +61,6 @@
             </main>
         </div>
     </div>
-
-    <!-- External JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
