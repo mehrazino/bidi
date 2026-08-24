@@ -307,31 +307,6 @@ body.dark .btn-secondary:hover {
     background: #475569;
 }
 
-/* ========== Footer ========== */
-.footer {
-    text-align: center;
-    flex-shrink: 0;
-    padding-top: 0.75rem;
-    margin-top: 0.75rem;
-    border-top: 1px solid #e0e0e0;
-    font-size: 0.9rem;
-    color: #666666;
-}
-
-body.dark .footer {
-    border-color: #334155;
-    color: #94a3b8;
-}
-
-.footer a {
-    color: #2563eb;
-    text-decoration: none;
-}
-
-body.dark .footer a {
-    color: #60a5fa;
-}
-
 /* ========== Mobile Responsive ========== */
 @media (max-width: 640px) {
     html, body {
