@@ -1,4 +1,6 @@
-// ========== DOM Elements ==========
+// ==========================================
+// DOM Elements
+// ==========================================
 const pageWrapper = document.getElementById('pageWrapper');
 const inputText = document.getElementById('inputText');
 const outputBox = document.getElementById('outputBox');
@@ -15,7 +17,9 @@ const moonIcon2 = document.getElementById('moonIcon2');
 const backBtn = document.getElementById('backBtn');
 const cleanerBtn = document.getElementById('cleanerBtn');
 
-// ========== Unicode Control Characters ==========
+// ==========================================
+// Unicode Control Characters
+// ==========================================
 const RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
 const LRE = '\u202A'; // LEFT-TO-RIGHT EMBEDDING
 const PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
@@ -27,23 +31,41 @@ const PDI = '\u2069'; // POP DIRECTIONAL ISOLATE
 const LRO = '\u202D'; // LEFT-TO-RIGHT OVERRIDE
 const RLO = '\u202E'; // RIGHT-TO-LEFT OVERRIDE
 
-// ========== Sets ==========
+// ==========================================
+// Sets
+// ==========================================
+// Bracket characters to skip during LTR detection
 const BRACKETS = new Set(['(', ')', '[', ']', '{', '}', '<', '>']);
+
+// Bidirectional control characters for cleanup
 const CTRL_CHARS = new Set([RLE, LRE, PDF, LRM, RLM, LRI, RLI, PDI, LRO, RLO]);
 
-// ========== Helper Functions ==========
+// ==========================================
+// Helper Functions
+// ==========================================
+
+/**
+ * Check if character is RTL (Persian, Arabic, Hebrew, Persian digits)
+ * @param {string} char - Single character
+ * @returns {boolean}
+ */
 function isRTLChar(char) {
     const code = char.charCodeAt(0);
     return (
-        (code >= 0x0590 && code <= 0x05FF) ||
-        (code >= 0x0600 && code <= 0x06FF) ||
-        (code >= 0x0750 && code <= 0x077F) ||
-        (code >= 0x08A0 && code <= 0x08FF) ||
-        (code >= 0xFB50 && code <= 0xFDFF) ||
-        (code >= 0x06F0 && code <= 0x06F9)
+        (code >= 0x0590 && code <= 0x05FF) || // Hebrew
+        (code >= 0x0600 && code <= 0x06FF) || // Arabic
+        (code >= 0x0750 && code <= 0x077F) || // Arabic Supplement
+        (code >= 0x08A0 && code <= 0x08FF) || // Arabic Extended-A
+        (code >= 0xFB50 && code <= 0xFDFF) || // Arabic Presentation Forms-A
+        (code >= 0x06F0 && code <= 0x06F9)    // Persian digits
     );
 }
 
+/**
+ * Check if string contains any RTL character
+ * @param {string} str
+ * @returns {boolean}
+ */
 function hasRTLChar(str) {
     for (const char of str) {
         if (isRTLChar(char)) return true;
@@ -51,11 +73,17 @@ function hasRTLChar(str) {
     return false;
 }
 
+/**
+ * Check if string is pure LTR (no RTL chars, at least one LTR char)
+ * @param {string} str
+ * @returns {boolean}
+ */
 function isPureLTR(str) {
     let hasLTR = false;
     let hasRTL = false;
 
     for (const char of str) {
+        // Skip brackets
         if (BRACKETS.has(char)) continue;
 
         if (isRTLChar(char)) {
@@ -71,21 +99,33 @@ function isPureLTR(str) {
     return hasLTR && !hasRTL;
 }
 
+/**
+ * Process a single token
+ * @param {string} token
+ * @returns {string}
+ */
 function processToken(token) {
     if (!token) return token;
     if (isPureLTR(token)) return LRE + token + PDF;
     return token;
 }
 
+/**
+ * Normalize text by wrapping LTR segments with directional markers
+ * @param {string} input
+ * @returns {string}
+ */
 function normalizeText(input) {
     if (!input) return '';
 
     return input.split('\n').map(line => {
         if (!line.trim()) return '';
 
+        // Determine line direction
         const direction = hasRTLChar(line) ? RLE : LRE;
-        const parts = line.split(/(\s+)/);
 
+        // Split by spaces and process each token
+        const parts = line.split(/(\s+)/);
         const processed = parts.map(part => {
             if (!part || part.trim() === '') return part;
             return processToken(part);
@@ -95,6 +135,11 @@ function normalizeText(input) {
     }).join('\n');
 }
 
+/**
+ * Clean bidirectional control characters from text
+ * @param {string} input
+ * @returns {string}
+ */
 function cleanText(input) {
     let result = '';
     for (const char of input) {
@@ -105,7 +150,13 @@ function cleanText(input) {
     return result;
 }
 
-// ========== Update Functions ==========
+// ==========================================
+// Update Functions
+// ==========================================
+
+/**
+ * Update converter output
+ */
 function updateConverter() {
     const normalized = normalizeText(inputText.value);
     if (normalized) {
@@ -115,6 +166,9 @@ function updateConverter() {
     }
 }
 
+/**
+ * Update cleaner output
+ */
 function updateCleaner() {
     const cleaned = cleanText(inputText2.value);
     if (cleaned) {
@@ -124,7 +178,15 @@ function updateCleaner() {
     }
 }
 
-// ========== Copy Function ==========
+// ==========================================
+// Copy Function
+// ==========================================
+
+/**
+ * Copy text to clipboard with visual feedback
+ * @param {HTMLElement} box - Output box element
+ * @param {HTMLElement} button - Copy button element
+ */
 function copyText(box, button) {
     const text = box.textContent;
     if (!text || box.querySelector('.placeholder')) return;
@@ -140,7 +202,13 @@ function copyText(box, button) {
     }).catch(() => {});
 }
 
-// ========== Theme Toggle ==========
+// ==========================================
+// Theme Toggle
+// ==========================================
+
+/**
+ * Toggle dark/light theme
+ */
 function toggleTheme() {
     const isDark = document.body.classList.toggle('dark');
 
@@ -152,28 +220,43 @@ function toggleTheme() {
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
 }
 
-// ========== Page Flip ==========
+// ==========================================
+// Page Flip
+// ==========================================
+
+/**
+ * Flip page (clockwise)
+ */
 function flipPage() {
     pageWrapper.classList.toggle('flipped');
 }
 
-// ========== Event Listeners ==========
+// ==========================================
+// Event Listeners
+// ==========================================
+
+// Page flip buttons
 cleanerBtn.addEventListener('click', flipPage);
 backBtn.addEventListener('click', flipPage);
 
+// Copy buttons
 copyBtn.addEventListener('click', () => copyText(outputBox, copyBtn));
 outputBox.addEventListener('click', () => copyText(outputBox, copyBtn));
 
 copyBtn2.addEventListener('click', () => copyText(outputBox2, copyBtn2));
 outputBox2.addEventListener('click', () => copyText(outputBox2, copyBtn2));
 
+// Input events
 inputText.addEventListener('input', updateConverter);
 inputText2.addEventListener('input', updateCleaner);
 
+// Theme toggle buttons
 themeBtn.addEventListener('click', toggleTheme);
 themeBtn2.addEventListener('click', toggleTheme);
 
-// ========== Load Saved Theme ==========
+// ==========================================
+// Load Saved Theme
+// ==========================================
 if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark');
     sunIcon.style.display = 'none';
@@ -182,6 +265,8 @@ if (localStorage.getItem('theme') === 'dark') {
     moonIcon2.style.display = 'block';
 }
 
-// ========== Initialize ==========
+// ==========================================
+// Initialize
+// ==========================================
 updateConverter();
 updateCleaner();
