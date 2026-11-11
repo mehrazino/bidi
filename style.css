@@ -1,18 +1,20 @@
-/* ==========================================
-   CSS Reset
-   ========================================== */
+/* CSS Reset */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* ==========================================
-   Base Styles
-   ========================================== */
+/* Base Styles */
 html, body {
     height: 100%;
     overflow: hidden;
+}
+
+html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 body {
@@ -26,17 +28,19 @@ body {
     color: #1a1a1a;
     transition: background 0.3s, color 0.3s;
     perspective: 1200px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* Dark Mode */
 body.dark {
     background: #0f172a;
     color: #e2e8f0;
+    color-scheme: dark;
 }
 
-/* ==========================================
-   Page Wrapper (3D Flip)
-   ========================================== */
+/* Page Wrapper (3D Flip) */
 .page-wrapper {
     position: relative;
     width: 100%;
@@ -45,7 +49,7 @@ body.dark {
     transform-style: preserve-3d;
 }
 
-/* Container shared styles */
+/* Shared Container */
 .page-wrapper .container {
     position: absolute;
     top: 0;
@@ -59,9 +63,12 @@ body.dark {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    transition: background 0.3s, border-color 0.3s, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.3s, border-color 0.3s,
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    overflow: hidden;
+    will-change: transform;
 }
 
 body.dark .container {
@@ -69,19 +76,20 @@ body.dark .container {
     border-color: #334155;
 }
 
-/* Front page (Converter) */
+/* Front Page (Converter) */
 .container.front {
     transform: rotateY(0);
     z-index: 2;
 }
 
-/* Back page (Cleaner) */
+/* Back Page (Cleaner) */
 .container.back {
     transform: rotateY(180deg);
     z-index: 1;
+    pointer-events: none;
 }
 
-/* Flipped state */
+/* Flipped State */
 .page-wrapper.flipped .container.front {
     transform: rotateY(-180deg);
     z-index: 1;
@@ -94,9 +102,7 @@ body.dark .container {
     pointer-events: auto;
 }
 
-/* ==========================================
-   Theme Toggle Button
-   ========================================== */
+/* Theme Toggle Button */
 .theme-btn {
     position: absolute;
     top: 1rem;
@@ -110,10 +116,12 @@ body.dark .container {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
     z-index: 10;
     padding: 0;
     flex-shrink: 0;
+    user-select: none;
+    touch-action: manipulation;
 }
 
 body.dark .theme-btn {
@@ -127,6 +135,19 @@ body.dark .theme-btn {
 
 body.dark .theme-btn:hover {
     background: #475569;
+}
+
+.theme-btn:active {
+    transform: scale(0.95);
+}
+
+.theme-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+body.dark .theme-btn:focus-visible {
+    outline-color: #60a5fa;
 }
 
 .theme-btn svg {
@@ -143,24 +164,29 @@ body.dark .theme-btn svg {
     stroke: #e2e8f0;
 }
 
-/* ==========================================
-   Header
-   ========================================== */
+/* Header */
 .header {
     text-align: center;
     flex-shrink: 0;
+    /* Reserve space for the absolute theme button on both sides */
+    padding-inline: 2.5rem;
 }
 
 .header h1 {
     font-size: 1.4rem;
     font-weight: 700;
     margin-bottom: 0.3rem;
+    text-wrap: balance;
 }
 
 .header-desc {
     font-size: 0.9rem;
     color: #666666;
     line-height: 1.7;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+    max-inline-size: 46ch;
+    margin-inline: auto;
 }
 
 body.dark .header-desc {
@@ -170,15 +196,25 @@ body.dark .header-desc {
 .header-desc a {
     color: #2563eb;
     text-decoration: none;
+    text-underline-offset: 2px;
+    transition: color 0.15s, text-decoration-color 0.15s;
+}
+
+.header-desc a:hover {
+    text-decoration: underline;
+}
+
+.header-desc a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    border-radius: 2px;
 }
 
 body.dark .header-desc a {
     color: #60a5fa;
 }
 
-/* ==========================================
-   Main Content
-   ========================================== */
+/* Main Content */
 .main-content {
     display: flex;
     flex-direction: column;
@@ -199,11 +235,10 @@ body.dark .header-desc a {
     font-size: 0.9rem;
     font-weight: 500;
     flex-shrink: 0;
+    text-align: start;
 }
 
-/* ==========================================
-   Textarea (Input)
-   ========================================== */
+/* Textarea (Input) */
 textarea {
     width: 100%;
     flex: 1;
@@ -216,15 +251,18 @@ textarea {
     background: #fefefe;
     resize: none;
     outline: none;
-    transition: border-color 0.2s, background 0.3s, color 0.3s;
+    transition: border-color 0.2s, box-shadow 0.2s,
+                background 0.3s, color 0.3s;
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
     unicode-bidi: plaintext;
     direction: rtl;
     text-align: right;
     color: #1a1a1a;
     overflow-y: auto;
+    overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
+    scrollbar-gutter: stable;
 }
 
 body.dark textarea {
@@ -236,13 +274,35 @@ body.dark textarea {
 
 textarea:focus {
     border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+body.dark textarea:focus {
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.22);
 }
 
 textarea::placeholder {
-    color: #999999;
+    color: #6b7280;
 }
 
-/* WebKit Scrollbar */
+body.dark textarea::placeholder {
+    color: #94a3b8;
+}
+
+textarea::selection,
+.output-box::selection {
+    background: rgba(37, 99, 235, 0.28);
+    color: inherit;
+}
+
+body.dark textarea::selection,
+body.dark .output-box::selection {
+    background: rgba(96, 165, 250, 0.45);
+    color: #f1f5f9;
+}
+
+/* WebKit Scrollbar (textarea) */
 textarea::-webkit-scrollbar {
     width: 8px;
 }
@@ -263,9 +323,7 @@ body.dark textarea::-webkit-scrollbar-thumb {
     background-clip: content-box;
 }
 
-/* ==========================================
-   Output Box
-   ========================================== */
+/* Output Box */
 .output-box {
     width: 100%;
     flex: 1;
@@ -278,13 +336,15 @@ body.dark textarea::-webkit-scrollbar-thumb {
     background: #fefefe;
     color: #1a1a1a;
     white-space: pre-wrap;
-    word-break: break-word;
+    overflow-wrap: anywhere;
     overflow-y: auto;
-    cursor: pointer;
+    cursor: copy;
     transition: border-color 0.2s, background 0.2s;
     unicode-bidi: plaintext;
+    overscroll-behavior: contain;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
+    scrollbar-gutter: stable;
 }
 
 body.dark .output-box {
@@ -304,7 +364,24 @@ body.dark .output-box:hover {
     border-color: #60a5fa;
 }
 
-/* WebKit Scrollbar */
+.output-box:active {
+    background: #eef2ff;
+}
+
+body.dark .output-box:active {
+    background: #312e81;
+}
+
+.output-box:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+body.dark .output-box:focus-visible {
+    outline-color: #60a5fa;
+}
+
+/* WebKit Scrollbar (output box) */
 .output-box::-webkit-scrollbar {
     width: 8px;
 }
@@ -326,13 +403,14 @@ body.dark .output-box::-webkit-scrollbar-thumb {
 }
 
 .output-box .placeholder {
-    color: #999999;
-    font-style: normal;
+    color: #6b7280;
 }
 
-/* ==========================================
-   Action Buttons
-   ========================================== */
+body.dark .output-box .placeholder {
+    color: #94a3b8;
+}
+
+/* Action Buttons */
 .actions {
     display: flex;
     gap: 0.6rem;
@@ -347,10 +425,11 @@ body.dark .output-box::-webkit-scrollbar-thumb {
     border: 1px solid #e0e0e0;
     border-radius: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
     font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
     background: #ffffff;
     color: #1a1a1a;
+    touch-action: manipulation;
 }
 
 body.dark .btn {
@@ -359,10 +438,35 @@ body.dark .btn {
     color: #e2e8f0;
 }
 
+.btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+body.dark .btn:focus-visible {
+    outline-color: #60a5fa;
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .btn-primary {
     background: #2563eb;
     border-color: #2563eb;
     color: #ffffff;
+}
+
+.btn-primary:hover {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.btn-primary:active {
+    background: #1e40af;
+    border-color: #1e40af;
 }
 
 body.dark .btn-primary {
@@ -370,23 +474,65 @@ body.dark .btn-primary {
     border-color: #3b82f6;
 }
 
-.btn-primary.btn-success {
-    background: #22c55e !important;
-    border-color: #22c55e !important;
-    color: #ffffff !important;
+body.dark .btn-primary:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+body.dark .btn-primary:active {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* Success state (higher specificity, no !important needed) */
+.btn.btn-primary.btn-success {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #ffffff;
+}
+
+.btn.btn-primary.btn-success:hover {
+    background: #16a34a;
+    border-color: #16a34a;
+}
+
+.btn.btn-primary.btn-success:active {
+    background: #15803d;
+    border-color: #15803d;
 }
 
 .btn-secondary:hover {
     background: #f5f5f5;
 }
 
+.btn-secondary:active {
+    background: #e5e5e5;
+}
+
 body.dark .btn-secondary:hover {
     background: #475569;
 }
 
-/* ==========================================
-   Mobile Responsive
-   ========================================== */
+body.dark .btn-secondary:active {
+    background: #526581;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+
+    .page-wrapper .container {
+        transition: none !important;
+    }
+}
+
+/* Mobile Responsive */
 @media (max-width: 640px) {
     html, body {
         overflow: auto;
@@ -411,6 +557,7 @@ body.dark .btn-secondary:hover {
         padding: 1rem;
         -webkit-backface-visibility: visible;
         backface-visibility: visible;
+        will-change: auto;
     }
 
     .page-wrapper.flipped .container.front {
@@ -440,10 +587,22 @@ body.dark .btn-secondary:hover {
         flex-direction: column;
     }
 
+    .btn {
+        min-height: 44px;
+    }
+
     .theme-btn {
         top: 0.75rem;
         right: 0.75rem;
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .header {
+        padding-inline: 2.5rem;
+    }
+
+    .header h1 {
+        font-size: 1.25rem;
     }
 }
