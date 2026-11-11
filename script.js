@@ -1,272 +1,353 @@
-// ==========================================
-// DOM Elements
-// ==========================================
-const pageWrapper = document.getElementById('pageWrapper');
-const inputText = document.getElementById('inputText');
-const outputBox = document.getElementById('outputBox');
-const copyBtn = document.getElementById('copyBtn');
-const themeBtn = document.getElementById('themeBtn');
-const sunIcon = document.getElementById('sunIcon');
-const moonIcon = document.getElementById('moonIcon');
-const inputText2 = document.getElementById('inputText2');
-const outputBox2 = document.getElementById('outputBox2');
-const copyBtn2 = document.getElementById('copyBtn2');
-const themeBtn2 = document.getElementById('themeBtn2');
-const sunIcon2 = document.getElementById('sunIcon2');
-const moonIcon2 = document.getElementById('moonIcon2');
-const backBtn = document.getElementById('backBtn');
-const cleanerBtn = document.getElementById('cleanerBtn');
+/* ============================================================
+   Mixed Text Converter — script.js (final)
+   ------------------------------------------------------------
+   Responsibilities:
+     - Light / dark theme with localStorage + system preference
+     - 3D page flip between converter (front) and cleaner (back),
+       with `inert` management so only one page is reachable
+     - Live bidirectional text conversion (per line) using
+       RLE / LRE / PDF Unicode control characters
+     - Cleaner that strips every BiDi control character
+     - Copy-to-clipboard with visual + ARIA feedback
+     - Keyboard activation on the focusable output boxes
+   ============================================================ */
 
-// ==========================================
-// Unicode Control Characters
-// ==========================================
-const RLE = '\u202B'; // RIGHT-TO-LEFT EMBEDDING
-const LRE = '\u202A'; // LEFT-TO-RIGHT EMBEDDING
-const PDF = '\u202C'; // POP DIRECTIONAL FORMATTING
-const LRM = '\u200E'; // LEFT-TO-RIGHT MARK
-const RLM = '\u200F'; // RIGHT-TO-LEFT MARK
-const LRI = '\u2066'; // LEFT-TO-RIGHT ISOLATE
-const RLI = '\u2067'; // RIGHT-TO-LEFT ISOLATE
-const PDI = '\u2069'; // POP DIRECTIONAL ISOLATE
-const LRO = '\u202D'; // LEFT-TO-RIGHT OVERRIDE
-const RLO = '\u202E'; // RIGHT-TO-LEFT OVERRIDE
+(function () {
+    'use strict';
 
-// ==========================================
-// Sets
-// ==========================================
-// Bracket characters to skip during LTR detection
-const BRACKETS = new Set(['(', ')', '[', ']', '{', '}', '<', '>']);
+    /* ------------------------------------------------------------------
+       Unicode BiDi control constants
+       ------------------------------------------------------------------ */
+    const RLE = '\u202B'; // Right-to-Left Embedding
+    const LRE = '\u202A'; // Left-to-Right Embedding
+    const PDF = '\u202C'; // Pop Directional Formatting
 
-// Bidirectional control characters for cleanup
-const CTRL_CHARS = new Set([RLE, LRE, PDF, LRM, RLM, LRI, RLI, PDI, LRO, RLO]);
+    // Every BiDi control we know of — used by the cleaner
+    const BIDI_RE =
+        /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
 
-// ==========================================
-// Helper Functions
-// ==========================================
+    // Strong characters that decide a line's base direction
+    const RTL_STRONG_RE =
+        /[\u0590-\u05FF\u0600-\u06FF\u0700-\u07BF\u07C0-\u07FF\u0800-\u083F\u0840-\u085F\u08A0-\u08FF\uFB1D-\uFDFF\uFE70-\uFEFF]/;
+    const LTR_STRONG_RE =
+        /[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0530-\u058F]/;
 
-/**
- * Check if character is RTL (Persian, Arabic, Hebrew, Persian digits)
- * @param {string} char - Single character
- * @returns {boolean}
- */
-function isRTLChar(char) {
-    const code = char.charCodeAt(0);
-    return (
-        (code >= 0x0590 && code <= 0x05FF) || // Hebrew
-        (code >= 0x0600 && code <= 0x06FF) || // Arabic
-        (code >= 0x0750 && code <= 0x077F) || // Arabic Supplement
-        (code >= 0x08A0 && code <= 0x08FF) || // Arabic Extended-A
-        (code >= 0xFB50 && code <= 0xFDFF) || // Arabic Presentation Forms-A
-        (code >= 0x06F0 && code <= 0x06F9)    // Persian digits
-    );
-}
+    /* ------------------------------------------------------------------
+       DOM references
+       ------------------------------------------------------------------ */
+    const $ = (id) => document.getElementById(id);
 
-/**
- * Check if string contains any RTL character
- * @param {string} str
- * @returns {boolean}
- */
-function hasRTLChar(str) {
-    for (const char of str) {
-        if (isRTLChar(char)) return true;
-    }
-    return false;
-}
+    const pageWrapper   = $('pageWrapper');
+    const converterPage = $('converterPage');
+    const cleanerPage   = $('cleanerPage');
 
-/**
- * Check if string is pure LTR (no RTL chars, at least one LTR char)
- * @param {string} str
- * @returns {boolean}
- */
-function isPureLTR(str) {
-    let hasLTR = false;
-    let hasRTL = false;
+    const inputText  = $('inputText');
+    const inputText2 = $('inputText2');
+    const outputBox  = $('outputBox');
+    const outputBox2 = $('outputBox2');
 
-    for (const char of str) {
-        // Skip brackets
-        if (BRACKETS.has(char)) continue;
+    const copyBtn    = $('copyBtn');
+    const copyBtn2   = $('copyBtn2');
+    const cleanerBtn = $('cleanerBtn');
+    const backBtn    = $('backBtn');
 
-        if (isRTLChar(char)) {
-            hasRTL = true;
-        } else {
-            const code = char.charCodeAt(0);
-            if (code >= 0x21 && code <= 0x7E) {
-                hasLTR = true;
-            }
-        }
+    const themeBtns = [$('themeBtn'), $('themeBtn2')].filter(Boolean);
+    const sunIcons  = [$('sunIcon'),  $('sunIcon2')].filter(Boolean);
+    const moonIcons = [$('moonIcon'), $('moonIcon2')].filter(Boolean);
+
+    /* ------------------------------------------------------------------
+       Hidden live region for screen-reader announcements
+       ------------------------------------------------------------------ */
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.setAttribute('aria-atomic', 'true');
+    liveRegion.style.cssText =
+        'position:absolute;width:1px;height:1px;padding:0;margin:-1px;' +
+        'overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);' +
+        'white-space:nowrap;border:0;';
+    document.body.appendChild(liveRegion);
+
+    function announce(message) {
+        liveRegion.textContent = '';
+        requestAnimationFrame(() => { liveRegion.textContent = message; });
     }
 
-    return hasLTR && !hasRTL;
-}
+    /* ==================================================================
+       1. Theme
+       ================================================================== */
+    const THEME_KEY = 'mixedTextConverter.theme';
+    let themeMetaEl = null;
 
-/**
- * Process a single token
- * @param {string} token
- * @returns {string}
- */
-function processToken(token) {
-    if (!token) return token;
-    if (isPureLTR(token)) return LRE + token + PDF;
-    return token;
-}
+    function applyTheme(isDark) {
+        document.body.classList.toggle('dark', isDark);
 
-/**
- * Normalize text by wrapping LTR segments with directional markers
- * @param {string} input
- * @returns {string}
- */
-function normalizeText(input) {
-    if (!input) return '';
-
-    return input.split('\n').map(line => {
-        if (!line.trim()) return '';
-
-        // Determine line direction
-        const direction = hasRTLChar(line) ? RLE : LRE;
-
-        // Split by spaces and process each token
-        const parts = line.split(/(\s+)/);
-        const processed = parts.map(part => {
-            if (!part || part.trim() === '') return part;
-            return processToken(part);
+        themeBtns.forEach((btn) => {
+            btn.setAttribute('aria-pressed', String(isDark));
+            btn.setAttribute(
+                'aria-label',
+                isDark ? 'غیرفعال کردن حالت تاریک' : 'فعال کردن حالت تاریک'
+            );
         });
 
-        return direction + processed.join('') + PDF;
-    }).join('\n');
-}
+        sunIcons.forEach((el)  => { el.style.display = isDark ? 'none' : ''; });
+        moonIcons.forEach((el) => { el.style.display = isDark ? '' : 'none'; });
 
-/**
- * Clean bidirectional control characters from text
- * @param {string} input
- * @returns {string}
- */
-function cleanText(input) {
-    let result = '';
-    for (const char of input) {
-        if (!CTRL_CHARS.has(char)) {
-            result += char;
+        // Keep the mobile browser chrome in sync
+        if (!themeMetaEl) {
+            themeMetaEl = document.querySelector('meta[name="theme-color"]');
+            if (!themeMetaEl) {
+                themeMetaEl = document.createElement('meta');
+                themeMetaEl.name = 'theme-color';
+                document.head.appendChild(themeMetaEl);
+            }
+        }
+        themeMetaEl.content = isDark ? '#0f172a' : '#fafafa';
+    }
+
+    function toggleTheme() {
+        const isDark = !document.body.classList.contains('dark');
+        applyTheme(isDark);
+        try {
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+        } catch (_) { /* storage may be unavailable */ }
+    }
+
+    function initTheme() {
+        let saved = null;
+        try { saved = localStorage.getItem(THEME_KEY); } catch (_) {}
+
+        let isDark;
+        if (saved === 'dark') {
+            isDark = true;
+        } else if (saved === 'light') {
+            isDark = false;
+        } else {
+            isDark = !!(window.matchMedia &&
+                window.matchMedia('(prefers-color-scheme: dark)').matches);
+        }
+        applyTheme(isDark);
+    }
+
+    themeBtns.forEach((btn) => btn.addEventListener('click', toggleTheme));
+
+    /* ==================================================================
+       2. Page flip
+       ================================================================== */
+    function setPage(isCleaner) {
+        pageWrapper.classList.toggle('flipped', isCleaner);
+
+        // Exactly one page is in the tab order and the a11y tree
+        converterPage.toggleAttribute('inert', isCleaner);
+        cleanerPage.toggleAttribute('inert', !isCleaner);
+
+        // Move focus into the newly active page
+        const focusTarget = isCleaner ? inputText2 : inputText;
+        if (focusTarget) focusTarget.focus({ preventScroll: true });
+    }
+
+    cleanerBtn.addEventListener('click', () => setPage(true));
+    backBtn.addEventListener('click', () => setPage(false));
+
+    /* ==================================================================
+       3. Conversion / cleaning
+       ================================================================== */
+
+    /**
+     * Return the direction of the first "strong" character in a line.
+     * BiDi control characters already present are skipped so the
+     * operation is idempotent when the user re-processes an output.
+     * @returns {'RTL' | 'LTR' | null}
+     */
+    function detectLineDirection(line) {
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+
+            if (
+                ch === '\u061C' || ch === '\u200E' || ch === '\u200F' ||
+                (ch >= '\u202A' && ch <= '\u202E') ||
+                (ch >= '\u2066' && ch <= '\u2069')
+            ) {
+                continue;
+            }
+
+            const code = ch.charCodeAt(0);
+
+            // Fast path for ASCII: only A–Z / a–z are "strong"
+            if (code < 0x80) {
+                if ((code >= 0x41 && code <= 0x5A) ||
+                    (code >= 0x61 && code <= 0x7A)) {
+                    return 'LTR';
+                }
+                continue;
+            }
+
+            if (RTL_STRONG_RE.test(ch)) return 'RTL';
+            if (LTR_STRONG_RE.test(ch)) return 'LTR';
+        }
+        return null;
+    }
+
+    /**
+     * Wrap a single line in the correct directional embedding:
+     *   RTL first strong → RLE … PDF
+     *   LTR first strong → LRE … PDF
+     *   No strong char   → unchanged
+     */
+    function convertLine(line) {
+        if (!line) return line;
+        const dir = detectLineDirection(line);
+        if (dir === 'RTL') return RLE + line + PDF;
+        if (dir === 'LTR') return LRE + line + PDF;
+        return line;
+    }
+
+    function convertText(text) {
+        if (!text) return '';
+        return text.split('\n').map(convertLine).join('\n');
+    }
+
+    function cleanText(text) {
+        if (!text) return '';
+        return text.replace(BIDI_RE, '');
+    }
+
+    /* ==================================================================
+       4. Rendering with placeholder
+       ================================================================== */
+    function renderOutput(box, text, emptyMessage) {
+        if (!text) {
+            box.textContent = '';
+            const span = document.createElement('span');
+            span.className = 'placeholder';
+            span.textContent = emptyMessage;
+            box.appendChild(span);
+            return;
+        }
+        // Plain textContent — safe against HTML injection
+        box.textContent = text;
+    }
+
+    function readOutput(box) {
+        // A box showing only the placeholder has no real content
+        if (box.querySelector(':scope > .placeholder')) return '';
+        return box.textContent;
+    }
+
+    function updateConverted() {
+        renderOutput(
+            outputBox,
+            convertText(inputText.value),
+            'خروجی اینجا نمایش داده می‌شود...'
+        );
+    }
+
+    function updateCleaned() {
+        renderOutput(
+            outputBox2,
+            cleanText(inputText2.value),
+            'خروجی اینجا نمایش داده می‌شود...'
+        );
+    }
+
+    inputText.addEventListener('input', updateConverted);
+    inputText2.addEventListener('input', updateCleaned);
+
+    /* ==================================================================
+       5. Copy to clipboard
+       ================================================================== */
+    const COPY_FEEDBACK_MS = 1400;
+
+    async function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (_) { /* fall through to legacy path */ }
+        }
+
+        // Legacy fallback for insecure contexts or older browsers
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.cssText =
+                'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand('copy');
+            document.body.removeChild(ta);
+            return ok;
+        } catch (_) {
+            return false;
         }
     }
-    return result;
-}
 
-// ==========================================
-// Update Functions
-// ==========================================
+    // Preserve base label and cancel pending restore per button
+    const baseLabels    = new WeakMap();
+    const restoreTimers = new WeakMap();
 
-/**
- * Update converter output
- */
-function updateConverter() {
-    const normalized = normalizeText(inputText.value);
-    if (normalized) {
-        outputBox.textContent = normalized;
-    } else {
-        outputBox.innerHTML = '<span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>';
-    }
-}
+    async function copyAndFlash(box, button) {
+        const text = readOutput(box);
+        if (!text) {
+            announce('چیزی برای کپی کردن وجود ندارد');
+            return;
+        }
 
-/**
- * Update cleaner output
- */
-function updateCleaner() {
-    const cleaned = cleanText(inputText2.value);
-    if (cleaned) {
-        outputBox2.textContent = cleaned;
-    } else {
-        outputBox2.innerHTML = '<span class="placeholder">خروجی اینجا نمایش داده می‌شود...</span>';
-    }
-}
+        if (!baseLabels.has(button)) {
+            baseLabels.set(button, button.textContent);
+        }
 
-// ==========================================
-// Copy Function
-// ==========================================
+        const pending = restoreTimers.get(button);
+        if (pending) clearTimeout(pending);
 
-/**
- * Copy text to clipboard with visual feedback
- * @param {HTMLElement} box - Output box element
- * @param {HTMLElement} button - Copy button element
- */
-function copyText(box, button) {
-    const text = box.textContent;
-    if (!text || box.querySelector('.placeholder')) return;
+        const ok = await copyToClipboard(text);
 
-    navigator.clipboard.writeText(text).then(() => {
-        button.textContent = 'کپی شد!';
-        button.classList.add('btn-success');
+        if (ok) {
+            button.textContent = 'کپی شد ✅';
+            button.classList.add('btn-success');
+            announce('خروجی با موفقیت کپی شد');
+        } else {
+            button.textContent = 'خطا در کپی';
+            announce('کپی خروجی ناموفق بود');
+        }
 
-        setTimeout(() => {
-            button.textContent = 'کپی خروجی';
+        const timerId = setTimeout(() => {
+            button.textContent = baseLabels.get(button);
             button.classList.remove('btn-success');
-        }, 1500);
-    }).catch(() => {});
-}
+            restoreTimers.delete(button);
+        }, COPY_FEEDBACK_MS);
 
-// ==========================================
-// Theme Toggle
-// ==========================================
+        restoreTimers.set(button, timerId);
+    }
 
-/**
- * Toggle dark/light theme
- */
-function toggleTheme() {
-    const isDark = document.body.classList.toggle('dark');
+    copyBtn.addEventListener('click',  () => copyAndFlash(outputBox,  copyBtn));
+    copyBtn2.addEventListener('click', () => copyAndFlash(outputBox2, copyBtn2));
 
-    sunIcon.style.display = isDark ? 'none' : 'block';
-    moonIcon.style.display = isDark ? 'block' : 'none';
-    sunIcon2.style.display = isDark ? 'none' : 'block';
-    moonIcon2.style.display = isDark ? 'block' : 'none';
+    // Clicking the box itself, or pressing Enter/Space while focused on it,
+    // also copies — matching the `cursor: copy` affordance in CSS.
+    function wireOutputCopy(box, button) {
+        box.addEventListener('click', () => copyAndFlash(box, button));
+        box.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                copyAndFlash(box, button);
+            }
+        });
+    }
+    wireOutputCopy(outputBox,  copyBtn);
+    wireOutputCopy(outputBox2, copyBtn2);
 
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-}
+    /* ==================================================================
+       6. Initialisation
+       ================================================================== */
+    initTheme();
 
-// ==========================================
-// Page Flip
-// ==========================================
+    // Front page active, back page inert by default
+    converterPage.removeAttribute('inert');
+    cleanerPage.setAttribute('inert', '');
+    pageWrapper.classList.remove('flipped');
 
-/**
- * Flip page (clockwise)
- */
-function flipPage() {
-    pageWrapper.classList.toggle('flipped');
-}
-
-// ==========================================
-// Event Listeners
-// ==========================================
-
-// Page flip buttons
-cleanerBtn.addEventListener('click', flipPage);
-backBtn.addEventListener('click', flipPage);
-
-// Copy buttons
-copyBtn.addEventListener('click', () => copyText(outputBox, copyBtn));
-outputBox.addEventListener('click', () => copyText(outputBox, copyBtn));
-
-copyBtn2.addEventListener('click', () => copyText(outputBox2, copyBtn2));
-outputBox2.addEventListener('click', () => copyText(outputBox2, copyBtn2));
-
-// Input events
-inputText.addEventListener('input', updateConverter);
-inputText2.addEventListener('input', updateCleaner);
-
-// Theme toggle buttons
-themeBtn.addEventListener('click', toggleTheme);
-themeBtn2.addEventListener('click', toggleTheme);
-
-// ==========================================
-// Load Saved Theme
-// ==========================================
-if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
-    sunIcon.style.display = 'none';
-    moonIcon.style.display = 'block';
-    sunIcon2.style.display = 'none';
-    moonIcon2.style.display = 'block';
-}
-
-// ==========================================
-// Initialize
-// ==========================================
-updateConverter();
-updateCleaner();
+    // Re-run conversion only if the browser restored textarea content
+    if (inputText.value)  updateConverted();
+    if (inputText2.value) updateCleaned();
+})();
